@@ -6,9 +6,10 @@ import java.util.regex.Pattern
 class Day3 : Day {
     override fun invoke(input: File?) {
         println("There are ${part1(input)} valid triangles")
+        println("There are actually ${part2(input)} valid triangles")
     }
 
-    fun readTrianglesFromFile(input: File?): List<Triple<Int, Int, Int>> =
+    fun readTrianglesFromFileByRow(input: File?): List<Triple<Int, Int, Int>> =
             input?.readLines()
                     ?.map { it.trim()
                             .split(Pattern.compile("\\s+"))
@@ -17,7 +18,23 @@ class Day3 : Day {
                     ?.filterNotNull()
                     ?: emptyList<Triple<Int, Int, Int>>()
 
-    fun part1(input: File?): Int = readTrianglesFromFile(input).count { validTriangle(it) }
+    fun readTrianglesFromFileByColumn(input: File?): List<Triple<Int, Int, Int>> =
+            input?.readLines()
+                    ?.flatMap { it.trim()
+                            .split(Pattern.compile("\\s+"))
+                            .map(String::toInt) }
+                    ?.mapIndexed { index, value -> Pair(index, value) }
+                    ?.groupBy { it.first % 3 }
+                    ?.map { it.value
+                            .groupBy { it.first / 9 }
+                            .map { it.value
+                                    .map { it.second } } }
+                    ?.flatMap { it.map { it.toOrderedTripleOrNull() } }
+                    ?.filterNotNull()
+                    ?: emptyList<Triple<Int, Int, Int>>()
+
+    fun part1(input: File?): Int = readTrianglesFromFileByRow(input).count { validTriangle(it) }
+    fun part2(input: File?): Int = readTrianglesFromFileByColumn(input).count { validTriangle(it) }
 
     fun validTriangle(triangle: Triple<Int, Int, Int>): Boolean = triangle.first + triangle.second > triangle.third
 }
