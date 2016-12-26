@@ -1,6 +1,7 @@
 package days
 
 import java.io.File
+import java.util.*
 import java.util.regex.Pattern
 
 class Day3 : Day {
@@ -18,20 +19,39 @@ class Day3 : Day {
                     ?.filterNotNull()
                     ?: emptyList<Triple<Int, Int, Int>>()
 
-    fun readTrianglesFromFileByColumn(input: File?): List<Triple<Int, Int, Int>> =
-            input?.readLines()
-                    ?.flatMap { it.trim()
-                            .split(Pattern.compile("\\s+"))
-                            .map(String::toInt) }
-                    ?.mapIndexed { index, value -> Pair(index, value) }
-                    ?.groupBy { it.first % 3 }
-                    ?.map { it.value
-                            .groupBy { it.first / 9 }
-                            .map { it.value
-                                    .map { it.second } } }
-                    ?.flatMap { it.map { it.toOrderedTripleOrNull() } }
-                    ?.filterNotNull()
-                    ?: emptyList<Triple<Int, Int, Int>>()
+    fun readTrianglesFromFileByColumn(input: File?): List<Triple<Int, Int, Int>> {
+        val triangles = ArrayList<Triple<Int, Int, Int>>()
+
+        var triangleBuffer1 = ArrayList<Int>()
+        var triangleBuffer2 = ArrayList<Int>()
+        var triangleBuffer3 = ArrayList<Int>()
+
+        input?.readLines()?.forEach {
+            val numbers = it.trim().split(Pattern.compile("\\s+")).map(String::toInt)
+            triangleBuffer1.add(numbers[0])
+            triangleBuffer2.add(numbers[1])
+            triangleBuffer3.add(numbers[2])
+
+            val triangle1 = triangleBuffer1.toOrderedTripleOrNull()
+            val triangle2 = triangleBuffer2.toOrderedTripleOrNull()
+            val triangle3 = triangleBuffer3.toOrderedTripleOrNull()
+
+            if (triangle1 != null) {
+                triangles.add(triangle1)
+                triangleBuffer1 = ArrayList()
+            }
+            if (triangle2 != null) {
+                triangles.add(triangle2)
+                triangleBuffer2 = ArrayList()
+            }
+            if (triangle3 != null) {
+                triangles.add(triangle3)
+                triangleBuffer3 = ArrayList()
+            }
+        }
+
+        return triangles
+    }
 
     fun part1(input: File?): Int = readTrianglesFromFileByRow(input).count { validTriangle(it) }
     fun part2(input: File?): Int = readTrianglesFromFileByColumn(input).count { validTriangle(it) }
